@@ -81,9 +81,53 @@ class Reservation:
         print("Reservation cancelled")
 
 def log_error(e):
-    """Función auxiliar para simular logging de errores"""
-    print(f"[LOG] Error: {e}")
+    with open("log.txt", "a") as f:
+        f.write(f"Error: {str(e)}\n")
 
+
+class SystemManager:
+    def __init__(self):
+        self.clients = []
+        self.services = []
+        self.reservations = []
+
+    def add_client(self, client):
+        try:
+            if not isinstance(client, Client):
+                raise TypeError("Invalid client type")
+        except Exception as e:
+            print("Error adding client")
+            log_error(e)
+        else:
+            self.clients.append(client)
+            print("Client added successfully")
+        finally:
+            print("Client process finished\n")
+
+    def add_service(self, service):
+        try:
+            if not isinstance(service, Service):
+                raise TypeError("Invalid service type")
+        except Exception as e:
+            print("Error adding service")
+            log_error(e)
+        else:
+            self.services.append(service)
+            print("Service added successfully")
+        finally:
+            print("Service process finished\n")
+
+    def make_reservation(self, client, service):
+        try:
+            reservation = Reservation(client, service)
+        except Exception as e:
+            print("Error creating reservation")
+            log_error(e)
+        else:
+            self.reservations.append(reservation)
+            reservation.confirm()
+        finally:
+            print("Reservation process finished\n")
 
 
 #TEST
@@ -205,5 +249,66 @@ except Exception as e:
     print("Error:", e)
     log_error(e)
 
+print("\n===== SYSTEM TEST (STUDENT CONTRIBUTION) =====\n")
 
+system = SystemManager()
+
+# 1 Cliente válido
+try:
+    c1 = Client("Carlos", "999")
+    system.add_client(c1)
+except Exception as e:
+    log_error(e)
+
+# 2 Cliente inválido
+try:
+    c2 = Client("", "")
+    system.add_client(c2)
+except Exception as e:
+    log_error(e)
+
+# 3 Servicio válido
+try:
+    s1 = RoomService(2)
+    system.add_service(s1)
+except Exception as e:
+    log_error(e)
+
+# 4 Servicio inválido
+try:
+    s2 = RoomService(-1)
+    system.add_service(s2)
+except Exception as e:
+    log_error(e)
+
+# 5 Servicio válido
+try:
+    s3 = EquipmentService(3)
+    system.add_service(s3)
+except Exception as e:
+    log_error(e)
+
+# 6 Servicio inválido
+try:
+    s4 = AdvisoryService(0)
+    system.add_service(s4)
+except Exception as e:
+    log_error(e)
+
+# 7 Reserva válida
+system.make_reservation(c1, s1)
+
+# 8 Reserva inválida (cliente falso)
+system.make_reservation("fake_client", s1)
+
+# 9 Reserva inválida (servicio falso)
+system.make_reservation(c1, "fake_service")
+
+# 10 Reserva válida adicional
+try:
+    s5 = AdvisoryService(2)
+    system.add_service(s5)
+    system.make_reservation(c1, s5)
+except Exception as e:
+    log_error(e)
 
