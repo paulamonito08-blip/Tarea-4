@@ -1,32 +1,63 @@
+from abc import ABC, abstractmethod
+
 class Client:
 
-    def __init__(self,name,id_number):
-        if not name:
+    def __init__(self, name, id_number):
+
+        if not name.strip():
             raise ValueError("Name cannot be empty")
-        if not id_number:
+
+        if not id_number.strip():
             raise ValueError("ID cannot be empty")
-        self.name = name
-        self.id_number=id_number
+
+        self._name = name
+        self._id_number = id_number
+
+    @property
+    def name(self):
+        return self._name
+
+    @property
+    def id_number(self):
+        return self._id_number
 
     def show_info(self):
-        print("Name:", self.name)
-        print("ID:", self.id_number)
+        print("Name:", self._name)
+        print("ID:", self._id_number)
 
-class Service:           
-    def __init__(self,name,price_per_hour, hours):
+class Service(ABC):
+
+    def __init__(self, name, price_per_hour, hours):
+
+        if not isinstance(hours, (int, float)):
+            raise TypeError("Hours must be numeric")
+
         if hours <= 0:
             raise ValueError("Hours must be greater than 0")
-        
-        self.name = name
-        self.price_per_hour = price_per_hour
-        self.hours = hours
 
-    def calculate_cost(self):
-        return self.price_per_hour * self.hours
-    
+        self._name = name
+        self._price_per_hour = price_per_hour
+        self._hours = hours
+
+    @property
+    def name(self):
+        return self._name
+
+    @property
+    def price_per_hour(self):
+        return self._price_per_hour
+
+    @property
+    def hours(self):
+        return self._hours
+
+    @abstractmethod
+    def calculate_cost(self, tax=0, discount=0):
+        pass
+
     def show_info(self):
-        print("Service:", self.name)
-        print("Hours:",self.hours)
+        print("Service:", self._name)
+        print("Hours:", self._hours)
         print("Total cost:", self.calculate_cost())
 
 class InvalidServiceError(Exception):
@@ -34,27 +65,47 @@ class InvalidServiceError(Exception):
         
 class RoomService(Service):
 
-    def __init__(self,hours):
-        if hours <= 0:
-            raise InvalidServiceError("Hours must be greater than 0")
-        
+    def __init__(self, hours):
         super().__init__("Room Service", 50, hours)
 
-    
-class EquipmentService (Service):
-    def __init__ (self,days):
-        if days <= 0:
-            raise InvalidServiceError("Days must be greater than 0")
-        
-        super().__init__("Equipment Service", 30, days)
+    def calculate_cost(self, tax=0, discount=0):
+
+        total = self.price_per_hour * self.hours
+
+        total += total * tax
+        total -= discount
+
+        return total
 
     
-class AdvisoryService (Service):
-    def __init__(self,hours):
-        if hours <= 0:
-            raise InvalidServiceError("Hours must be greater than 0")
-        
+class EquipmentService(Service):
+
+    def __init__(self, days):
+        super().__init__("Equipment Service", 30, days)
+
+    def calculate_cost(self, tax=0, discount=0):
+
+        total = self.price_per_hour * self.hours
+
+        total += total * tax
+        total -= discount
+
+        return total
+
+    
+class AdvisoryService(Service):
+
+    def __init__(self, hours):
         super().__init__("Advisory Service", 100, hours)
+
+    def calculate_cost(self, tax=0, discount=0):
+
+        total = self.price_per_hour * self.hours
+
+        total += total * tax
+        total -= discount
+
+        return total
 
 class Reservation:
 
@@ -137,7 +188,7 @@ client1.show_info()
 
 print("-----")
 
-service1 = Service("Room", 50, 2)
+service1 = RoomService(2)
 service1.show_info()
 
 print("-----RESERVATION-----")
@@ -155,7 +206,7 @@ except Exception as e:
     print("Error:", e)
 
 try:
-    bad_service = Service("Room", 50,-2)
+    bad_service = RoomService(-2)
 except Exception as e:
     print("Error:",e)
 
@@ -311,4 +362,3 @@ try:
     system.make_reservation(c1, s5)
 except Exception as e:
     log_error(e)
-
